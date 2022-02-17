@@ -64,6 +64,8 @@ blank [ \t\r]
 {int}		return make_NUMBER(yytext, loc);
 {id}		return yy::parser::make_IDENTIFIER(yytext, loc);
 
+"#".*		;
+
 .		{
 }
 
