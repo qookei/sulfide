@@ -101,8 +101,8 @@ args_inner:
 |	args_inner "," expr	{ $1.push_back(std::move($3)); $$ = std::move($1); }
 
 template_arg:
-	expr		{ $$ = ast::template_arg{std::move($1)}; }
-|	"type" type	{ $$ = ast::template_arg{std::make_unique<ast::type_ref>(std::move($2))}; }
+	"value" expr		{ $$ = ast::template_arg{std::move($2)}; }
+|	type	{ $$ = ast::template_arg{std::make_unique<ast::type_ref>(std::move($1))}; }
 
 template_arg_list:
 	template_arg				{ $$ = std::vector<ast::template_arg>{}; $$.push_back(std::move($1)); }

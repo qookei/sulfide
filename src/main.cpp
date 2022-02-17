@@ -28,6 +28,7 @@ void print_item_path(const ast::item_path &path) {
 			for (size_t i = 0; i < item.templ_args.size(); i++) {
 				struct {
 					void operator()(const ast::expr_p &ex) {
+						std::cout << "value ";
 						print_expr(ex);
 					}
 
