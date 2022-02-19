@@ -106,10 +106,23 @@ auto into_expr(T &&t) {
 	return std::make_unique<expr>(std::forward<T>(t));
 }
 
+using type_constraints = std::vector<item_path>;
+
+struct template_decl_arg {
+	std::string name;
+	std::variant<
+		type_ref, /* constant value */
+		type_constraints /* type */
+	> value;
+};
+
+using template_decl = std::vector<template_decl_arg>;
+
 struct function {
 	std::string name;
+	template_decl templ;
 	std::vector<var_decl> args;
-	ast::type_ref return_type;
+	type_ref return_type;
 	std::unique_ptr<expr> body;
 };
 

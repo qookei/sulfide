@@ -79,14 +79,18 @@
 %nterm <ast::var_decl> var_spec;
 %nterm <std::vector<ast::var_decl>> args_spec_inner;
 
+%nterm <ast::type_constraints> type_constraints;
+%nterm <ast::template_decl_arg> template_decl_arg;
+%nterm <ast::template_decl> template_decl template_decl_args;
+
 %%
 
 %start top_level;
 
+%right "=";
+%left "<" ">";
 %left "+" "-";
 %left "*" "/";
-%left "<" ">";
-%right "=";
 %left ".";
 
 block_inner:
@@ -158,20 +162,25 @@ expr:
 |	block_expr	{ $$ = std::move($1); }
 |	let_expr	{ $$ = std::move($1); }
 
-template_item_decl:
-	"identifier" "=" "type"
-|	"identifier" "=" "value" type
+type_constraints:
+	path				{ $$ = ast::type_constraints{}; $$.push_back(std::move($1)); }
+|	type_constraints "+" path	{ $1.push_back(std::move($3)); $$ = std::move($1); }
 
-template_item_decls:
-	template_item_decl
-|	template_item_decls "," template_item_decl
+template_decl_arg:
+	"identifier" "=" "type"			{ $$ = ast::template_decl_arg{std::move($1), ast::type_constraints{}}; }
+|	"identifier" "=" type_constraints	{ $$ = ast::template_decl_arg{std::move($1), std::move($3)}; }
+|	"identifier" "=" "value" type		{ $$ = ast::template_decl_arg{std::move($1), std::move($4)}; }
+
+template_decl_args:
+	template_decl_arg				{ $$ = ast::template_decl{}; $$.push_back(std::move($1)); }
+|	template_decl_args "," template_decl_arg	{ $1.push_back(std::move($3)); $$ = std::move($1); }
 
 template_decl:
-	%empty
-|	"[" template_item_decls "]"
+	%empty				{ $$ = ast::template_decl{}; }
+|	"[" template_decl_args "]"	{ $$ = std::move($2); }
 
 fn_decl:
-	"fn" "identifier" template_decl "(" args_spec_inner ")" ":" type "=" expr ";"	{ drv.functions_.push_back(ast::function{$2, std::move($5), std::move($8), std::move($10)}); }
+	"fn" "identifier" template_decl "(" args_spec_inner ")" ":" type "=" expr ";"	{ drv.functions_.push_back(ast::function{$2, std::move($3), std::move($5), std::move($8), std::move($10)}); }
 
 top_level_item:
 	fn_decl
