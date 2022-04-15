@@ -18,6 +18,7 @@ void print_op(ast::op_type type) {
 }
 
 void print_expr(const ast::expr_p &ex);
+void print_type(const ast::type_ref &type);
 
 void print_item_path(const ast::item_path &path) {
 	for (auto &item: path) {
@@ -34,7 +35,7 @@ void print_item_path(const ast::item_path &path) {
 
 					void operator()(const std::unique_ptr<ast::type_ref> &type) {
 						std::cout << "type ";
-						print_item_path(type->type_path);
+						print_type(*type);
 					}
 				} visitor;
 
@@ -47,6 +48,18 @@ void print_item_path(const ast::item_path &path) {
 			std::cout << "]";
 		}
 	}
+}
+
+void print_type(const ast::type_ref &type) {
+	using enum ast::type_kind;
+
+	switch (type.kind) {
+		case unqualified: break;
+		case ref: std::cout << "&"; break;
+		case const_ref: std::cout << "&const "; break;
+	}
+
+	print_item_path(type.type_path);
 }
 
 struct {
@@ -111,7 +124,7 @@ struct {
 	void operator()(const ast::var_decl_expr &ex) {
 		std::cout << (ex.is_const ? "const " : "let ");
 		std::cout << ex.decl.name << ": ";
-		print_item_path(ex.decl.type.type_path);
+		print_type(ex.decl.type);
 		std::cout << " = ";
 		print_expr(ex.init);
 	}
@@ -133,14 +146,14 @@ void print_function(const ast::function &fn) {
 
 	for (size_t i = 0; i < fn.args.size(); i++) {
 		std::cout << fn.args[i].name << ": ";
-		print_item_path(fn.args[i].type.type_path);
+		print_type(fn.args[i].type);
 
 		if (i < fn.args.size() - 1)
 			std::cout << ", ";
 	}
 
 	std::cout << "): ";
-	print_item_path(fn.return_type.type_path);
+	print_type(fn.return_type);
 	std::cout << " = ";
 	print_expr(fn.body);
 	std::cout << ";\n\n";

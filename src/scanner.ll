@@ -60,6 +60,7 @@ blank [ \t\r]
 "<"		return yy::parser::make_LT(loc);
 ">"		return yy::parser::make_GT(loc);
 "value"		return yy::parser::make_VALUE(loc);
+"&"		return yy::parser::make_AMP(loc);
 
 {int}		return make_NUMBER(yytext, loc);
 {id}		return yy::parser::make_IDENTIFIER(yytext, loc);

@@ -57,6 +57,7 @@
 	LT		"<"
 	GT		">"
 	VALUE		"value"
+	AMP		"&"
 
 ;
 
@@ -120,7 +121,10 @@ path:
 	name		{ $$ = std::vector<ast::item_ref>{}; $$.push_back(std::move($1)); }
 |	path "::" name	{ $1.push_back(std::move($3)); $$ = std::move($1); }
 
-type: path	{ $$ = ast::type_ref{std::move($1)}; }
+type:
+	path			{ $$ = ast::type_ref{std::move($1), ast::type_kind::unqualified}; }
+|	"&" path		{ $$ = ast::type_ref{std::move($2), ast::type_kind::ref}; }
+|	"&" "const" path	{ $$ = ast::type_ref{std::move($3), ast::type_kind::const_ref}; }
 
 var_spec: "identifier" ":" type	{ $$ = ast::var_decl{std::move($1), std::move($3)}; }
 

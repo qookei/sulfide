@@ -17,8 +17,15 @@ struct item_ref;
 
 using item_path = std::vector<item_ref>;
 
+enum class type_kind {
+	unqualified,
+	ref,
+	const_ref
+};
+
 struct type_ref {
 	item_path type_path;
+	type_kind kind;
 };
 
 using template_arg = std::variant<
