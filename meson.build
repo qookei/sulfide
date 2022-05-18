@@ -17,7 +17,10 @@ bison_gen = generator(bison,
 	output : ['@BASENAME@.cpp', '@BASENAME@.hpp'],
 	arguments : ['-Wall', '-Wcounterexamples', '--color', '@INPUT@', '-o', '@OUTPUT0@'])
 
-executable('sulfide', 'src/main.cpp',
-	flex_gen.process('src/scanner.ll'),
-	bison_gen.process('src/parser.yy'),
-	include_directories : 'src/')
+conflict_dep = dependency('conflict')
+
+executable('sulfide', 'src/frontend/main.cpp', 'src/frontend/debug.cpp',
+	flex_gen.process('src/frontend/scanner.ll'),
+	bison_gen.process('src/frontend/parser.yy'),
+	include_directories : 'src/',
+	dependencies : [ conflict_dep ])

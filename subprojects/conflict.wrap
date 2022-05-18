@@ -1,0 +1,6 @@
+[wrap-git]
+url = https://github.com/qookei/conflict.git
+revision = master
+
+[provide]
+dependency_names = conflict

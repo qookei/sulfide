@@ -1,5 +1,7 @@
-#include <driver.hpp>
-#include <ast.hpp>
+#include <frontend/debug.hpp>
+#include <iostream>
+
+namespace {
 
 void print_op(ast::op_type type) {
 	using enum ast::op_type;
@@ -17,9 +19,6 @@ void print_op(ast::op_type type) {
 	}
 }
 
-void print_expr(const ast::expr_p &ex);
-void print_type(const ast::type_ref &type);
-
 void print_item_path(const ast::item_path &path) {
 	for (auto &item: path) {
 		std::cout << item.name;
@@ -30,12 +29,12 @@ void print_item_path(const ast::item_path &path) {
 				struct {
 					void operator()(const ast::expr_p &ex) {
 						std::cout << "value ";
-						print_expr(ex);
+						dump_expr(ex);
 					}
 
 					void operator()(const std::unique_ptr<ast::type_ref> &type) {
 						std::cout << "type ";
-						print_type(*type);
+						dump_type(*type);
 					}
 				} visitor;
 
@@ -48,18 +47,6 @@ void print_item_path(const ast::item_path &path) {
 			std::cout << "]";
 		}
 	}
-}
-
-void print_type(const ast::type_ref &type) {
-	using enum ast::type_kind;
-
-	switch (type.kind) {
-		case unqualified: break;
-		case ref: std::cout << "&"; break;
-		case const_ref: std::cout << "&const "; break;
-	}
-
-	print_item_path(type.type_path);
 }
 
 struct {
@@ -77,7 +64,7 @@ struct {
 		depth_++;
 		for (const auto &e : ex.exprs) {
 			indent_();
-			print_expr(e);
+			dump_expr(e);
 			std::cout << "\n";
 		}
 		depth_--;
@@ -87,85 +74,88 @@ struct {
 	}
 
 	void operator()(const ast::binary_expr &ex) {
-		print_expr(ex.left);
+		dump_expr(ex.left);
 		print_op(ex.type);
-		print_expr(ex.right);
+		dump_expr(ex.right);
 	}
 
 	void operator()(const ast::unary_expr &ex) {
 		print_op(ex.type);
-		print_expr(ex.right);
+		dump_expr(ex.right);
 	}
 
 	void operator()(const ast::if_else_expr &ex) {
 		std::cout << "if ";
-		print_expr(ex.cond);
-		print_expr(ex.then);
+		dump_expr(ex.cond);
+		dump_expr(ex.then);
 		if (ex.else_ex) {
 			std::cout << " else ";
-			print_expr(ex.else_ex);
+			dump_expr(ex.else_ex);
 		}
 	}
 
 	void operator()(const ast::while_expr &ex) {
 		std::cout << "while ";
-		print_expr(ex.cond);
-		print_expr(ex.then);
+		dump_expr(ex.cond);
+		dump_expr(ex.then);
 	}
 	
 	void operator()(const ast::fn_call_expr &ex) {
-		print_expr(ex.fn);
+		dump_expr(ex.fn);
 		std::cout << "(";
 		for (const auto &e : ex.args)
-			print_expr(e);
+			dump_expr(e);
 		std::cout << ")";
 	}
 
 	void operator()(const ast::var_decl_expr &ex) {
 		std::cout << (ex.is_const ? "const " : "let ");
 		std::cout << ex.decl.name << ": ";
-		print_type(ex.decl.type);
+		dump_type(ex.decl.type);
 		std::cout << " = ";
-		print_expr(ex.init);
+		dump_expr(ex.init);
 	}
 
 private:
 	void indent_() { for (int i = 0; i < depth_; i++) std::cout << "\t"; }
 
 	int depth_ = 0;
-} print_expr_impl;
+} dump_expr_impl;
 
-void print_expr(const ast::expr_p &ex) {
+} // namespace anonymous
+
+void dump_expr(const ast::expr_p &ex) {
 	std::cout << "(";
-	std::visit(print_expr_impl, ex->ex);
+	std::visit(dump_expr_impl, ex->ex);
 	std::cout << ")";
 }
 
-void print_function(const ast::function &fn) {
+void dump_function(const ast::function &fn) {
 	std::cout << "fn " << fn.name << "(";
 
 	for (size_t i = 0; i < fn.args.size(); i++) {
 		std::cout << fn.args[i].name << ": ";
-		print_type(fn.args[i].type);
+		dump_type(fn.args[i].type);
 
 		if (i < fn.args.size() - 1)
 			std::cout << ", ";
 	}
 
 	std::cout << "): ";
-	print_type(fn.return_type);
+	dump_type(fn.return_type);
 	std::cout << " = ";
-	print_expr(fn.body);
+	dump_expr(fn.body);
 	std::cout << ";\n\n";
 }
 
-int main(int argc, char **argv) {
-	if (argc < 2) return 1;
+void dump_type(const ast::type_ref &type) {
+	using enum ast::type_kind;
 
-	driver drv;
-	if (int r = drv.parse(argv[1]))
-		return r;
+	switch (type.kind) {
+		case unqualified: break;
+		case ref: std::cout << "&"; break;
+		case const_ref: std::cout << "&const "; break;
+	}
 
-	for (const auto &fn : drv.functions_)
-		print_function(fn);
+	print_item_path(type.type_path);
 }

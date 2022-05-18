@@ -3,14 +3,14 @@
 #include <string>
 #include <map>
 #include <parser.hpp>
-#include "ast.hpp"
+#include <frontend/ast.hpp>
 
 #define YY_DECL \
-	yy::parser::symbol_type yylex(driver &drv)
+	yy::parser::symbol_type yylex(parse_driver &drv)
 
 YY_DECL;
 
-struct driver {
+struct parse_driver {
 	int parse(const std::string &f) {
 		file = f;
 
@@ -27,12 +27,12 @@ struct driver {
 	}
 
 	std::string file;
-	bool trace_parsing = true;
+	bool trace_parsing = false;
 
 	void scan_begin();
 	void scan_end();
 
-	bool trace_scanning = true;
+	bool trace_scanning = false;
 
 	yy::location location;
 

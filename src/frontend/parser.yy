@@ -10,12 +10,12 @@
 
 %code requires {
 	#include <string>
-	#include <ast.hpp>
+	#include <frontend/ast.hpp>
 
-	struct driver;
+	struct parse_driver;
 }
 
-%param { driver &drv }
+%param { parse_driver &drv }
 
 %locations
 
@@ -24,7 +24,7 @@
 %define parse.lac full
 
 %code {
-	#include <driver.hpp>
+	#include <frontend/parse-driver.hpp>
 }
 
 %define api.token.prefix {TOK_}

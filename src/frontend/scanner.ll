@@ -5,7 +5,7 @@
 #include <climits>
 #include <cstdlib>
 #include <cstring>
-#include <driver.hpp>
+#include <frontend/parse-driver.hpp>
 #include "parser.hpp"
 %}
 
@@ -81,7 +81,7 @@ yy::parser::symbol_type make_NUMBER(const std::string &s, const yy::parser::loca
 	return yy::parser::make_NUMBER((int) n, loc);
 }
 
-void driver::scan_begin() {
+void parse_driver::scan_begin() {
 	yy_flex_debug = trace_scanning;
 	yyin = fopen(file.c_str(), "r");
 
@@ -91,7 +91,7 @@ void driver::scan_begin() {
 	}
 }
 
-void driver::scan_end() {
+void parse_driver::scan_end() {
 	fclose(yyin);
 }
 
